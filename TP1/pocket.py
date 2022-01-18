@@ -11,6 +11,7 @@ class Pocket:
         self.activation_func = self._step_func
         self.max_iters = T_max
         self.weights = None
+        self.AllL = None
         # self.bias= None
 
     
@@ -44,22 +45,23 @@ class Pocket:
 
         self.loss = self.compute_loss(X, y,self.weights[1:],self.weights[0]) # Ls_0
         n_iters = 0
-        losses = [self.loss]
+        losses = [cp.deepcopy(self.loss)]
         Weights = [cp.deepcopy(self.weights)]
-
+        self.best_params = [cp.deepcopy(self.weights)]
+        self.AllL = [cp.deepcopy(self.loss)]
         for t in range(self.max_iters):
             # get a new weight and bias
-            w, b = self._pla_training_cycle(X,y)
+            self._pla_training_cycle(X,y)
             # Test them
-            loss = self.compute_loss(X, y, w ,b)
+            loss = self.compute_loss(X, y, self.weights[1:] ,self.weights[0])
+            self.AllL.append(cp.deepcopy(loss))
             # Update the Weights and bias if the loss is good
             if loss < self.loss:
                 self.loss = loss
-                self.weights[1:] = w
-                self.weights[0] = b
+                self.best_params.append(cp.deepcopy(self.weights))
+                
 
-
-            losses.append(self.loss)
+            losses.append(cp.deepcopy(self.loss))
             Weights.append(cp.deepcopy(self.weights))
 
             # n_iters = n_iters + 1
@@ -79,12 +81,12 @@ class Pocket:
         linear_output = np.dot(X, self.weights[1:]) + self.weights[0]
         for i in range(X.shape[0]):
             if self.activation_func(linear_output[i]) * y[i] < 0:
-                w = self.weights[1:] + y[i] * X[i]
-                b= self.weights[0] + y[i]
-        return [w,b]
+                self.weights[1:] = self.weights[1:] + y[i] * X[i]
+                self.weights[0] = self.weights[0] + y[i]
+        return self
+
         
-        
-    
+ 
     def predict(self, X):
         linear_output= np.dot(X, self.weights[1:])+self.weights[0]
         y_predicted= self.activation_func(linear_output)
