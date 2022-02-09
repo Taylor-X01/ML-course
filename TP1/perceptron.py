@@ -11,8 +11,8 @@ class Perceptron:
         self.n_iters = None
         self.activation_func=self._step_func
         self.max_iters = max_iters
-        self.weights = None
-        self.bias= None
+        self.weights = None  #size=(n_iter,max_iters)
+        self.bias= None #size=(1,max_iters)
 
     
     def _step_func(self, X):
